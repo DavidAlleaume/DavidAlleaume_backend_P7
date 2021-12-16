@@ -1,27 +1,27 @@
 const jwt = require('jsonwebtoken')
-const secret_key = require('./secret_key')
-
+const privateKey = require('../auth/private_key')
+  
 module.exports = (req, res, next) => {
-    try {
-        // récupération du token dans le header de la requête
-        const token = req.headers.authorization.split(' ')[1]
-        // vérification du token
-        const decodedToken = jwt.verify(token, secret_key)
-        // récupération du user ID contenu dans le token
-        const userId = decodedToken.userId
-        // si le user ID contenu dans le corps de la requête est différent de celui contenu dans le token
+    const authorizationHeader = req.headers.authorization
+  
+    if(!authorizationHeader) {
+        const message = `Vous n'avez pas fourni de jeton d'authentification. Ajoutez-en un dans l'en-tête de la requête.`
+        return res.status(401).json({ message })
+    }
+
+    const token = authorizationHeader.split(' ')[1]
+    jwt.verify(token, privateKey, (error, decodedToken) => {
+        if(error) {
+        const message = `L'utilisateur n'est pas autorisé à accèder à cette ressource.`
+        return res.status(401).json({ message, data: error })
+        }
+  
+        let userId = decodedToken.userId
         if (req.body.userId && req.body.userId !== userId) {
-            //throw 'Invalid user ID'
-            res.status(403).json({
-                error: new Error('Unauthorized request!')
-            })
+            const message = `L'identifiant de l'utilisateur est invalide.`
+            res.status(401).json({ message })
         } else {
-            // si tout va bien on passe la requête au prochain middleware
             next()
         }
-    } catch {
-        res.status(401).json({
-            error: new Error('Invalid request!')
-        })
-    }
+    })
 }
