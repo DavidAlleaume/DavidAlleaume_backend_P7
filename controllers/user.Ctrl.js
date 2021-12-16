@@ -79,41 +79,25 @@ exports.getUserProfile = (req, res, next) => {
             lastname: userFound.lastname,
             bio: userFound.bio,
             isAdmin: userFound.isAdmin
-      })
-    })
-    .catch((err) => res.status(500).json({ err }));
+            })
+        })
+        .catch((err) => res.status(500).json({ err }));
 }
 
 // Modification d'un profil utilisateur
 exports.updateUserProfile = (req, res, next) => {
-    let password
-
-    if (req.body.password) {
-            bcrypt.hash(req.body.password, 10).then((hash) => {
-                password = hash
+    const userOject = { ...req.body }
+    models.User.findOne({ where: { id: req.params.id } })
+        .then((userFound) => {
+            if (!userFound) {
+                return res.status(401).json({
+                message: "Cet utilisateur n'existe pas",
+                })
+            }
+            models.User.update({...userOject}, {
+                where: { id: req.params.id }
+            })
+            .then(() => res.status(200).json({message: "Profil modifié !"}))
         })
-    }
-    const updatedData = {
-        email: req.body.email,
-        username: req.body.username,
-        password,
-        bio: req.body.bio,
-        isAdmin: req.body.isAdmin
-    }
-    models.User.update(updatedData, {
-        where: { id: req.params.id }
-    })
-    .then(userFound => {
-        if (!userFound) {
-            return res.status(404).json({message: `Utilisateur non trouvé`})
-        } else {
-            res.status(200).json({ message: `Le profil a été modifié avec succès`, data: updatedData })
-        }
-    })
-    .catch(() => {
-        res.status(500).json({ 'error': `Impossible d'accéder à votre demande, veuillez rééssayer dans quelques instants` })
-    })
-}
-
-
-
+        .catch(error => res.status(401).json({message: 'Modification non autorisée !'}))
+} 
