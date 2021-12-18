@@ -1,8 +1,8 @@
 // Imports
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const secret_key = require('../middlewares/auth/private_key')
 const models = require('../models')
+require('dotenv').config()
 
 // Création d'un utilisteur
 exports.signup = (req, res, next) => {
@@ -16,8 +16,7 @@ exports.signup = (req, res, next) => {
                             firstname: req.body.firstname,
                             lastname: req.body.lastname,
                             password: hash,
-                            bio: req.body.bio,
-                            isAdmin: 0
+                            isAdmin: 0,
                         }
                         models.User.create(user)
                         .then(() => {
@@ -28,8 +27,8 @@ exports.signup = (req, res, next) => {
             return res.status(409).json({ 'error': `Cet utilisteur existe déjà !`})
             }
         })
-        .catch(() => {
-            return res.status(500).json({ 'error': `Impossible d'accéder à votre demande, veuillez rééssayer dans quelques instants`})
+        .catch(error => {
+            res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
         })
 }
 
@@ -38,29 +37,32 @@ exports.login = (req, res, next) => {
     models.User.findOne({ where: { email: req.body.email } })
         .then((userFound) => {
             if (!userFound) {
-                return res.status(401).json({
-                message: "Cet utilisateur n'existe pas",
+                return res.status(404).json({
+                message: "Cet utilisateur n'existe pas !",
                 })
             }
             bcrypt.compare(req.body.password, userFound.password)
                 .then((valid) => {
                     if (!valid) {
                         return res.status(401).json({
-                        message: "Mot de passe incorrect",
+                        message: "Mot de passe incorrect !",
                         })
                     }
                     res.status(200).json({
+                        message: `Vous êtes maintenant connecté !`,
                         userId: userFound.id,
                         token: jwt.sign(
                             { userId: userFound.id }, 
-                            secret_key, 
-                            { expiresIn: "1h" }
+                            process.env.TOKEN_KEY, 
+                            { expiresIn: "3h" }
                         )
                     })
                 })
                 .catch((err) => res.status(500).json({ err }));
         })
-        .catch((err) => res.status(500).json({ err }));
+        .catch(error => {
+            res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+        })
 }
 
 // Récupération d'un profil utilisateur
@@ -70,34 +72,73 @@ exports.getUserProfile = (req, res, next) => {
         .then((userFound) => {
             if (!userFound) {
                 return res.status(404).json({
-                message: "Cet utilisateur n'éxiste pas !",
+                message: "Cet utilisateur n'existe pas !",
             })
-        }
+        } 
         res.status(200).json({
             email: userFound.email,
             firstname: userFound.firstname,
             lastname: userFound.lastname,
+            isAdmin: userFound.isAdmin,
+            profileAvatar: userFound.profileAvatar,
             bio: userFound.bio,
-            isAdmin: userFound.isAdmin
             })
         })
-        .catch((err) => res.status(500).json({ err }));
+        .catch(error => {
+            res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+        })
 }
 
 // Modification d'un profil utilisateur
 exports.updateUserProfile = (req, res, next) => {
-    const userOject = { ...req.body }
-    models.User.findOne({ where: { id: req.params.id } })
-        .then((userFound) => {
-            if (!userFound) {
-                return res.status(401).json({
-                message: "Cet utilisateur n'existe pas",
-                })
+    const userProfile = req.file ?
+    {
+        ...JSON.parse(req.body),
+        profileAvatar: `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
+    } : { ...req.body}
+    models.User.findOne({where: { id: req.params.id}})
+        .then(userFound => {
+            if(!userFound){
+                return res.status(404).json({ message: `Cet utilisateur n'existe pas !` })
+            } else if (req.token.userId !== userFound.id) {
+                return res.status(401).json({ message: "Requête non autorisée !" }) 
             }
-            models.User.update({...userOject}, {
+            models.User.update({...userProfile}, {
                 where: { id: req.params.id }
             })
-            .then(() => res.status(200).json({message: "Profil modifié !"}))
+            .then(() => res.status(200).json({message: "Votre profil à bien été modifié !", data: userProfile}))
         })
-        .catch(error => res.status(401).json({message: 'Modification non autorisée !'}))
-} 
+        .catch(error => {
+            res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+        })
+}
+
+// Suppression d'un utilisateur
+exports.deleteUserProfile = (req, res, next) => {
+    models.User.findOne({
+          where: { id: req.params.id },
+        })
+        .then((userFound) => {
+            if (!userFound) {
+                return res.status(404).json({ message: "Cet utilisateur n'existe pas !" })
+            } else if (req.token.userId !== userFound.id) {
+                return res.status(401).json({ message: "Requête non autorisée !" }) 
+            }
+            models.User.destroy({
+                where: { id: req.params.id }
+            })
+                return res.status(200).json({message: "Le profil à bien été supprimé !"})    
+        })
+        .catch(error => {
+            res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+        })               
+}        
+        
+
+
+/* suppression de tous les posts de l'utilisateur
+models.Post.destroy({  
+    where: { userId: userFound.id },
+})
+*/
+
