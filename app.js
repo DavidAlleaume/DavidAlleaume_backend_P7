@@ -2,8 +2,7 @@ const express = require('express')
 const path = require("path")
 const app = express()
 
-// Middleware qui concerne toutes les routes et qui ajoute des headers à l'objet response pour éviter les 
-// problèmes de CORS
+// Middleware qui ajoute des headers à l'objet response pour éviter les problèmes de CORS
 app.use((req, res, next) => {
     // on autaorise tout le monde à accéder à notre API
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -21,11 +20,11 @@ app.get('/', (req, res) => { res.status(200).send('Bonjour et bienvenue sur mon 
 app.use("/images", express.static(path.join(__dirname, "images")))
 
 const userRoutes = require('./routes/user.routes')
-//const messageRoutes = require('./routes/message.routes')
+const postRoutes = require('./routes/post.routes')
 
 app
     .use('/api/user', userRoutes)
-    //.use('/api/message', messageRoutes)
+    .use('/api/post', postRoutes)
 
 
 module.exports = app

@@ -106,7 +106,7 @@ exports.updateUserProfile = (req, res, next) => {
             models.User.update({...userProfile}, {
                 where: { id: req.params.id }
             })
-            .then(() => res.status(200).json({message: "Votre profil à bien été modifié !", data: userProfile}))
+            .then(() => res.status(200).json({message: "Votre profil a bien été modifié !", data: userProfile}))
         })
         .catch(error => {
             res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
@@ -124,21 +124,19 @@ exports.deleteUserProfile = (req, res, next) => {
             } else if (req.token.userId !== userFound.id) {
                 return res.status(401).json({ message: "Requête non autorisée !" }) 
             }
-            models.User.destroy({
-                where: { id: req.params.id }
+            models.Post.destroy({
+                where: { UserId: userFound.id }
             })
-                return res.status(200).json({message: "Le profil à bien été supprimé !"})    
-        })
+            .then(() => {
+                models.User.destroy({
+                    where: { id: req.params.id }
+                })
+                    return res.status(200).json({message: "Le profil a bien été supprimé !"})    
+            })
+        })    
         .catch(error => {
             res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
         })               
 }        
-        
 
-
-/* suppression de tous les posts de l'utilisateur
-models.Post.destroy({  
-    where: { userId: userFound.id },
-})
-*/
 
