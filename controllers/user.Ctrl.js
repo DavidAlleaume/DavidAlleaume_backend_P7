@@ -76,6 +76,7 @@ exports.getUserProfile = (req, res, next) => {
             })
         } 
         res.status(200).json({
+            userId: userFound.id,
             email: userFound.email,
             firstname: userFound.firstname,
             lastname: userFound.lastname,
