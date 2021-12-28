@@ -51,8 +51,12 @@ exports.login = (req, res, next) => {
                     res.status(200).json({
                         message: `Vous êtes maintenant connecté !`,
                         userId: userFound.id,
+                        isAdmin: userFound.isAdmin,
                         token: jwt.sign(
-                            { userId: userFound.id }, 
+                            { 
+                                userId: userFound.id,
+                                isAdmin: userFound.isAdmin, 
+                            }, 
                             process.env.TOKEN_KEY, 
                             { expiresIn: "3h" }
                         )

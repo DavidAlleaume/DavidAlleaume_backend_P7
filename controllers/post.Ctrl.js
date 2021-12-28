@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken')
 const models = require('../models')
+const fs = require('fs')
 require('dotenv').config()
 
 // Création d'un post
@@ -73,13 +73,26 @@ exports.deletePost = (req, res, next) => {
     .then(postFound => {
         if(!postFound){
             return res.status(404).json({ message: `Ce post n'existe pas !` })
-        } else if (req.token.userId !== postFound.UserId) {
-            return res.status(401).json({ message: "Requête non autorisée !" }) 
-        }
-        models.Post.destroy({
-            where: { id: req.params.id }
-        })
-        .then(() => res.status(200).json({ message: `Le post n°${postFound.id} a bien été supprimé !` }))
+        } else if(postFound.attachment != null) {
+            const filename = postFound.attachment.split('/images')[1]
+            fs.unlink(`images/${filename}`, () => {
+                models.Post.destroy({
+                    where: { id: req.params.id }
+                })
+                .then(() => res.status(200).json({ message: `Le post n°${postFound.id} a bien été supprimé !` }))
+                .catch(error => {
+                    res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+                })
+            })
+        } else {
+            models.Post.destroy({
+                where: { id: req.params.id }
+            })
+            .then(() => res.status(200).json({ message: `Le post n°${postFound.id} a bien été supprimé !` }))
+            .catch(error => {
+                res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
+            })
+        }  
     })
     .catch(error => {
         res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
