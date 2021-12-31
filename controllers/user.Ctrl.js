@@ -87,6 +87,7 @@ exports.getUserProfile = (req, res, next) => {
             isAdmin: userFound.isAdmin,
             profileAvatar: userFound.profileAvatar,
             bio: userFound.bio,
+            createdAt: userFound.createdAt
             })
         })
         .catch(error => {
@@ -126,18 +127,17 @@ exports.deleteUserProfile = (req, res, next) => {
         .then((userFound) => {
             if (!userFound) {
                 return res.status(404).json({ message: "Cet utilisateur n'existe pas !" })
-            } else if (req.token.userId !== userFound.id) {
-                return res.status(401).json({ message: "Requête non autorisée !" }) 
-            }
-            models.Post.destroy({
-                where: { UserId: userFound.id }
-            })
-            .then(() => {
-                models.User.destroy({
-                    where: { id: req.params.id }
+            } else {
+                models.Post.destroy({
+                    where: { UserId: userFound.id }
                 })
+                .then(() => {
+                    models.User.destroy({
+                        where: { id: req.params.id }
+                    })
                     return res.status(200).json({message: "Le profil a bien été supprimé !"})    
-            })
+                })
+            }
         })    
         .catch(error => {
             res.status(500).json({ message: `Impossible d'accéder à votre demande ! Veuillez rééssayer dans quelques instants.`, data: error})
