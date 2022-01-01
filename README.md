@@ -9,7 +9,7 @@ Pour utiliser cette API :
 - depuis le dossier racine du projet, ouvrez un terminal et :
     
     *installez sequelize avec la commande: npm install sequelize --save
-    *installez les dépendances  nodemon, express, mysql2, bcrypt, jsonwebtoken
+    *installez les dépendances  (nodemon, express, mysql2, bcrypt, jsonwebtoken) avec la commande npm install
     *lancez le serveur avec la commande : npm start
 
 - téléchargez et installer wampserver sur votre ordinateur
