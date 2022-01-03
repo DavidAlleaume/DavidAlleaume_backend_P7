@@ -6,14 +6,22 @@ Pour utiliser cette API :
 
     *installez sequelize-cli avec la commande : npm install -g sequelize-cli
 
-- depuis le dossier racine du projet, ouvrez un terminal et :
+- depuis le dossier racine du projet (backend_p7), ouvrez un terminal et :
     
     *installez sequelize avec la commande: npm install sequelize --save
-    *installez les dépendances  (nodemon, express, mysql2, bcrypt, jsonwebtoken) avec la commande npm install
+    *installez les dépendances  (nodemon, express, dotenv, mysql2, bcrypt, jsonwebtoken) avec la commande npm install
     *lancez le serveur avec la commande : npm start
 
-- téléchargez et installer wampserver sur votre ordinateur
-- lancez phpMyAdmin
-- créez une base de donnée nommée groupomania dans php phpMyAdmin
+- renseignez les champs de l'objet du fichier config.json dans le dossier config avec les valeurs de votre choix
 
-- depuis le dossier racine du projet tapez la commande : sequelize db:migrate
+- téléchargez et installer wampserver sur votre ordinateur
+- Paramétrez et lancez phpMyAdmin
+
+- depuis le dossier racine du projet créez votre base de données avec la commande: sequelize db:create
+- puis effectuez les migrations des modèles avec la commande: sequelize db:migrate
+(vous pouvez supprimez la base de données avec la commande: sequelize db:drop)
+
+- Créez un fichier .env à la racine du projet et ajoutez-y : 
+    TOKEN_KEY = dgksbeib456jkrblz4fhco   
+    
+    (la valeur donnée ici à TOKEN_KEY est un exemple, vous pouvez lui attribuer la valeur de votre choix)

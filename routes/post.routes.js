@@ -11,11 +11,12 @@ const multer = require('../middlewares/multer-config')
 // import de la logique métier
 const postCtrl = require('../controllers/post.Ctrl')
 
+
+// Initialisation des routes
 router.post('/', auth, multer, postCtrl.createPost)
 router.get('/', auth, postCtrl.getAllPosts)
 router.put('/:id', auth, multer, postCtrl.modifyPost)
 router.delete('/:id', auth, postCtrl.deletePost)
-
 
 // export du routeur
 module.exports = router
